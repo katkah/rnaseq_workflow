@@ -1,0 +1,93 @@
+# RNA-seq Snakemake Workflow Configuration
+
+# Sample information
+samples: "samples.tsv"
+
+# Reference genome and annotation paths
+# Update these paths to your reference files on Metacentrum
+reference:
+  genome_dir: "full/path/to/genome/STAR_index"  # Path to STAR genome index
+  genome_fasta: "full/path/to/genome/genome.genomic.fa.gz"  # Genome FASTA file
+  gtf: "full/path/to/genome/genome.gtf"    # GTF annotation file
+  rsem_index: "full/path/to/genome/RSEM_index_snakemake" # RSEM genome index prefix
+  rsem_index_name: "genome" # Base name for RSEM index (without .idx extension)
+
+# Output directories
+output_dir: "results"
+logs_dir: "logs"
+
+# Permission fixing (handles UID/GID issues)
+perm_fix: "chgrp -R your_group_name"
+
+# Tool parameters
+fastqc:
+  threads: 8
+  mem_gb: 8
+
+fastp:
+  threads: 8
+  mem_gb: 32
+  # Fastp quality and adapter trimming parameters - base params for both data types
+  base_params: >-
+    --length_required 75
+    --cut_front
+    --cut_tail
+    --trim_poly_g
+  # Paired-end specific parameters (quality-based trimming only)
+  paired_params: ""
+  # Single-end specific parameters (quality-based trimming only)
+  single_params: ""
+
+sortmerna:
+  mem_gb: 135
+  threads: 2
+  # SortMeRNA database path
+  database: "/full/path/to/tools/sortmeRNA/smr_v4.3_default_db.fasta"
+  # SortMeRNA environment
+  env: "/full/path/to/conda/envs/sortmerna_v4"
+
+multiqc:
+  # MultiQC will automatically find all FastQC reports
+  mem_gb: 4
+  threads: 8
+
+star:
+  threads: 8
+  mem_gb: 32
+  # Additional STAR parameters based on your settings
+  extra_params: >-
+    --outSAMtype BAM SortedByCoordinate
+    --outFilterMultimapNmax 20
+    --outFilterMismatchNoverReadLmax 1.00
+    --outFilterMismatchNmax 999
+    --quantTranscriptomeBan IndelSoftclipSingleend
+    --quantMode TranscriptomeSAM GeneCounts
+    --readFilesCommand zcat
+
+rsem:
+  threads: 8
+  mem_gb: 32
+  # RSEM strandedness: none, forward, reverse
+  strandedness: "forward"  # Update based on your library prep
+  # Additional RSEM parameters based on your settings
+  extra_params: >-
+    --alignments
+    --estimate-rspd
+    --no-bam-output
+    --calc-ci
+    --ci-memory 32000
+
+# Module loading for Metacentrum
+modules:
+  loadmodules: "source /cvmfs/software.metacentrum.cz/modulefiles/5.1.0/loadmodules"
+  mambaforge: "module add mambaforge"
+  rsem_env: "mamba activate /full/path/to/conda/envs/rsem_env"
+  star: "mamba activate /full/path/to/conda/envs/star_2_7_10b"
+  fastqc: "mamba activate /full/path/to/conda/envs/fastqc_v0_12_1"
+  multiqc_env: "mamba activate /full/path/to/conda/envs/multiqc_v1_34"
+  sortmerna_env: "mamba activate /full/path/to/conda/envs/sortmerna_v4"
+
+# Tool paths
+tools:
+  fastp: "/full/path/to/tools/fastp/fastp"
+  rsem_dir: "/full/path/to/tools/rsem/RSEM"
