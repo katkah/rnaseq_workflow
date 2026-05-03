@@ -1,5 +1,5 @@
 # RNA-seq Snakemake Workflow
-# Author: Learning Snakemake
+# Author: katkah
 # Description: FastQC -> MultiQC -> STAR alignment -> RSEM quantification
 
 import pandas as pd

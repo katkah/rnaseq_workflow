@@ -4,7 +4,7 @@
 samples: "samples.tsv"
 
 # Reference genome and annotation paths
-# Update these paths to your reference files on Metacentrum
+# Update these paths to your reference files on PBS cluster
 reference:
   genome_dir: "full/path/to/genome/STAR_index"  # Path to STAR genome index
   genome_fasta: "full/path/to/genome/genome.genomic.fa.gz"  # Genome FASTA file
@@ -77,9 +77,9 @@ rsem:
     --calc-ci
     --ci-memory 32000
 
-# Module loading for Metacentrum
+# Module loading for PBS cluster
 modules:
-  loadmodules: "source /cvmfs/software.metacentrum.cz/modulefiles/5.1.0/loadmodules"
+  loadmodules: "source /path/to/loadmodules"
   mambaforge: "module add mambaforge"
   rsem_env: "mamba activate /full/path/to/conda/envs/rsem_env"
   star: "mamba activate /full/path/to/conda/envs/star_2_7_10b"
