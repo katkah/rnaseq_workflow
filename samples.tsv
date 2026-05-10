@@ -1,1 +1,3 @@
 sample	fq1	fq2
+SAMPLE1	/path/to/raw/SAMPLE1_1.fastq.gz	/path/to/raw/SAMPLE1_2.fastq.gz
+SAMPLE2	/path/to/raw/SAMPLE2_1.fastq.gz	/path/to/raw/SAMPLE2_2.fastq.gz

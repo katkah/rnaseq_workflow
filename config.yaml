@@ -2,22 +2,19 @@
 
 # Sample information
 samples: "samples.tsv"
+chunks: ["001", "002", "003"]
 
 # Reference genome and annotation paths
-# Update these paths to your reference files on PBS cluster
 reference:
-  genome_dir: "full/path/to/genome/STAR_index"  # Path to STAR genome index
-  genome_fasta: "full/path/to/genome/genome.genomic.fa.gz"  # Genome FASTA file
-  gtf: "full/path/to/genome/genome.gtf"    # GTF annotation file
-  rsem_index: "full/path/to/genome/RSEM_index_snakemake" # RSEM genome index prefix
-  rsem_index_name: "genome" # Base name for RSEM index (without .idx extension)
+  genome_dir: "/path/to/genome/STAR_index"        # Path to STAR genome index
+  genome_fasta: "/path/to/genome/genome.fa.gz"    # Genome FASTA file
+  gtf: "/path/to/genome/annotation.gtf"           # GTF annotation file
+  rsem_index: "/path/to/genome/RSEM_index"        # RSEM index directory
+  rsem_index_name: "species_name"                 # Base name for RSEM index files (without extension)
 
 # Output directories
 output_dir: "results"
 logs_dir: "logs"
-
-# Permission fixing (handles UID/GID issues)
-perm_fix: "chgrp -R your_group_name"
 
 # Tool parameters
 fastqc:
@@ -33,28 +30,35 @@ fastp:
     --cut_front
     --cut_tail
     --trim_poly_g
-  # Paired-end specific parameters (quality-based trimming only)
+  # Paired-end specific parameters
   paired_params: ""
-  # Single-end specific parameters (quality-based trimming only)
+  # Single-end specific parameters
   single_params: ""
 
 sortmerna:
-  mem_gb: 135
-  threads: 2
+  mem_gb: 50
+  threads: 4
   # SortMeRNA database path
-  database: "/full/path/to/tools/sortmeRNA/smr_v4.3_default_db.fasta"
-  # SortMeRNA environment
-  env: "/full/path/to/conda/envs/sortmerna_v4"
+  database: "/path/to/tools/sortmeRNA/smr_v4.3_default_db.fasta"
+  env: "/path/to/envs/sortmerna_v4"
+  # Speed optimisation for rRNA depletion:
+  # --no-best: disables exhaustive search for the best alignment across all references.
+  #            For rRNA depletion we only need to know WHETHER a read is rRNA, not
+  #            which reference it matches best.
+  # --num_alignments 1: stop after finding the first passing alignment.
+  extra_params: "--no-best --num_alignments 1"
 
 multiqc:
-  # MultiQC will automatically find all FastQC reports
   mem_gb: 4
   threads: 8
 
 star:
   threads: 8
   mem_gb: 32
-  # Additional STAR parameters based on your settings
+  # NOTE: extra_params is used for paired-end data (star_align_pe).
+  # For single-end data (star_align_se), --quantTranscriptomeBan is omitted entirely
+  # because IndelSoftclipSingleend bans unpaired mate alignments, which would remove
+  # ALL reads from a single-end transcriptome BAM and break RSEM.
   extra_params: >-
     --outSAMtype BAM SortedByCoordinate
     --outFilterMultimapNmax 20
@@ -66,10 +70,9 @@ star:
 
 rsem:
   threads: 8
-  mem_gb: 32
+  mem_gb: 48
   # RSEM strandedness: none, forward, reverse
   strandedness: "forward"  # Update based on your library prep
-  # Additional RSEM parameters based on your settings
   extra_params: >-
     --alignments
     --estimate-rspd
@@ -77,17 +80,18 @@ rsem:
     --calc-ci
     --ci-memory 32000
 
-# Module loading for PBS cluster
+# Module loading for Metacentrum
 modules:
-  loadmodules: "source /path/to/loadmodules"
+  loadmodules: "source /cvmfs/software.metacentrum.cz/modulefiles/5.1.0/loadmodules"
   mambaforge: "module add mambaforge"
-  rsem_env: "mamba activate /full/path/to/conda/envs/rsem_env"
-  star: "mamba activate /full/path/to/conda/envs/star_2_7_10b"
-  fastqc: "mamba activate /full/path/to/conda/envs/fastqc_v0_12_1"
-  multiqc_env: "mamba activate /full/path/to/conda/envs/multiqc_v1_34"
-  sortmerna_env: "mamba activate /full/path/to/conda/envs/sortmerna_v4"
+  rsem_env: "mamba activate /path/to/envs/rsem_env"
+  star: "mamba activate /path/to/envs/star_2_7_10b"
+  fastqc: "mamba activate /path/to/envs/fastqc_v0_12_1"
+  multiqc_env: "mamba activate /path/to/envs/multiqc_v1_34"
+  sortmerna_env: "mamba activate /path/to/envs/sortmerna_v4"
+  seqkit_env: "mamba activate /path/to/envs/seqkit"
 
-# Tool paths
+# Tool paths (source-compiled binaries, see INSTALL.md)
 tools:
-  fastp: "/full/path/to/tools/fastp/fastp"
-  rsem_dir: "/full/path/to/tools/rsem/RSEM"
+  fastp: "/path/to/fastp/fastp"
+  rsem_dir: "/path/to/RSEM"
